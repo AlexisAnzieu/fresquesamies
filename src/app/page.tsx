@@ -1,95 +1,142 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import {
+    Card,
+    CardBody,
+    Container,
+    Text,
+    SimpleGrid,
+    Box,
+    CardHeader,
+    Heading,
+    Select,
+    Stack,
+    StackDivider,
+    Link,
+    Input,
+} from "@chakra-ui/react";
+import { CalendarIcon, ExternalLinkIcon } from "@chakra-ui/icons";
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+async function getData() {
+    const res = await fetch("https://sheetdb.io/api/v1/0ezl9ai5yr34c");
+    // The return value is *not* serialized
+    // You can return Date, Map, Set, etc.
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+    // Recommendation: handle errors
+    if (!res.ok) {
+        // This will activate the closest `error.js` Error Boundary
+        throw new Error("Failed to fetch data");
+    }
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    return res.json();
+}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
+const extractColor = (avancement: string) => {
+    const mapping: Record<string, string> = {
+        "En création": "red",
+        "En rodage": "orange",
+        "En usage": "green",
+    };
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    return mapping[avancement] || "gray";
+};
+
+export default async function Home() {
+    const data = await getData();
+    return (
+        <Container maxW="container.xl" p={5}>
+            <Box py={5}>
+                {" "}
+                <Input
+                    size={"lg"}
+                    variant="flushed"
+                    placeholder="Rechercher une fresque"
+                />
+            </Box>
+
+            <Box width={["100%", 350]} py={5}>
+                {" "}
+                <Select size="lg">
+                    <option value="option1">
+                        De la plus vieille à la plus récente
+                    </option>
+                    <option value="option1">
+                        De la plus récente à la plus vieille
+                    </option>
+                    <option value="option2">Alphabétique A-Z</option>
+                    <option value="option2">Alphabétique Z-A</option>
+                </Select>
+            </Box>
+
+            <SimpleGrid columns={[1, 1, 2, 3]} spacing={10}>
+                {data.map((item: any, id: number) => (
+                    <Card
+                        boxShadow={"xl"}
+                        key={id}
+                        border={"1px"}
+                        borderColor={extractColor(item.Avancement.trim())}
+                    >
+                        <CardHeader>
+                            <Heading size="md" noOfLines={2}>
+                                {item["Titre de la fresque"]}
+                            </Heading>
+                            <Box noOfLines={2}>
+                                {" "}
+                                par {item["Association porteuse"]}
+                            </Box>
+                        </CardHeader>
+
+                        <CardBody>
+                            <Stack divider={<StackDivider />} spacing="4">
+                                <Box>
+                                    <CalendarIcon boxSize={6} />{" "}
+                                    {item["Date de création"]}
+                                    <br />
+                                    <br />
+                                    {item["Site internet"]
+                                        .split(/,| |\n/)
+                                        .filter((w: string) =>
+                                            w.includes("http")
+                                        )
+                                        .map((website: string, id: number) => (
+                                            <Box key={id}>
+                                                <Link href={website} isExternal>
+                                                    {website}{" "}
+                                                    <ExternalLinkIcon mx="2px" />
+                                                </Link>
+                                            </Box>
+                                        ))}
+                                </Box>
+                                <Box>
+                                    <Heading
+                                        size="xs"
+                                        textTransform="uppercase"
+                                    >
+                                        Description
+                                    </Heading>
+                                    <Text pt="2" fontSize="sm" noOfLines={5}>
+                                        {item["Description"]}
+                                    </Text>
+                                </Box>
+                                <Box>
+                                    {item["Contact"]
+                                        .split(/,| |\n/)
+                                        .filter((email: any) =>
+                                            email.includes("@")
+                                        )
+                                        .map((email: any, id: number) => (
+                                            <Box key={id}>
+                                                <a href={`mailto: ${email}`}>
+                                                    {email}
+                                                </a>
+                                            </Box>
+                                        ))}
+                                </Box>
+                            </Stack>
+                        </CardBody>
+                    </Card>
+                ))}
+            </SimpleGrid>
+        </Container>
+    );
 }
