@@ -1875,7 +1875,6 @@ export default function Home() {
                             <Box noOfLines={2}>
                                 {" "}
                                 par {item["Association porteuse"]}
-                                <br />
                             </Box>
                             <Box>
                                 <Badge
@@ -1892,7 +1891,6 @@ export default function Home() {
                         <CardBody>
                             <Stack divider={<StackDivider />} spacing="4">
                                 <Box>
-                                    <br /> <br />
                                     <CalendarIcon boxSize={6} />{" "}
                                     {item["Date de création"]}
                                     <br />
